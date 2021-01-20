@@ -23,7 +23,7 @@ export default async (req: NowRequest, res: NowResponse) => {
 function requireArg<T>(argName: string) {
   return (arg: T) => {
     if (!arg) {
-      throw new ErrorWithStatus(400, `${argName} is a required argument`)
+      throw new ErrorWithStatus(403, `${argName} is a required argument`)
     }
     return arg
   }
