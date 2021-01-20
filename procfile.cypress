@@ -1,0 +1,2 @@
+vercel: npx vercel dev
+cypress: npx cypress open

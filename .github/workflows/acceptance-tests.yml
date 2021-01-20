@@ -1,0 +1,43 @@
+# This was taken from a great post from Gleb Bahmutov
+# https://glebbahmutov.com/blog/develop-preview-test/
+
+name: Acceptance Tests
+on: [deployment_status]
+jobs:
+  e2e:
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checking Out Code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Starting Cypress
+        uses: cypress-io/github-action@v2
+        env:
+          CYPRESS_BASE_URL: ${{ github.event.deployment_status.target_url }}
+      - name: Cypress tests (passed)
+        if: ${{ success() }}
+        # set the merge commit status check using Github Rest API
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "context": "e2e",
+            "state": "success",
+            "description": "Cypress tests passed"
+          }'
+      - name: Cypress tests (failed)
+        if: ${{ failure() }}
+        run: |
+          curl --request POST \
+          --url https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json' \
+          --data '{
+            "context": "e2e",
+            "state": "failure",
+            "description": "Cypress tests failed"
+          }'
